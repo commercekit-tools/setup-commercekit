@@ -1,0 +1,30 @@
+name: Setup CommerceKit CLI
+description:
+  Install and verify an exact CommerceKit CLI version on GitHub Actions runners.
+author: CommerceKit
+
+inputs:
+  version:
+    description: Exact CommerceKit CLI version to install.
+    required: true
+
+outputs:
+  version:
+    description: Exact installed CommerceKit CLI version.
+  path:
+    description: Absolute path to the verified CommerceKit executable.
+  target:
+    description: Resolved CommerceKit release target.
+  build-id:
+    description: Verified build identity from the CommerceKit release manifest.
+  cache-hit:
+    description:
+      Whether an already verified runner tool-cache installation was reused.
+
+runs:
+  using: node24
+  main: dist/index.js
+
+branding:
+  icon: download-cloud
+  color: blue

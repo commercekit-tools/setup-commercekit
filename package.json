@@ -1,0 +1,42 @@
+{
+  "name": "setup-commercekit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Official GitHub Action to install and verify the CommerceKit CLI.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25.0.0"
+  },
+  "packageManager": "pnpm@12.6.0",
+  "scripts": {
+    "bundle": "ncc build src/index.ts --minify --license licenses.txt -o dist",
+    "bundle:check": "node scripts/check-bundle.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm bundle:check && pnpm audit --prod --audit-level=high",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "node scripts/integration.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "3.0.1",
+    "@actions/tool-cache": "4.0.0",
+    "semver": "7.8.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "@types/semver": "7.8.0",
+    "@vercel/ncc": "0.45.0",
+    "@vitest/coverage-v8": "5.0.4",
+    "eslint": "10.12.0",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.4"
+  }
+}
