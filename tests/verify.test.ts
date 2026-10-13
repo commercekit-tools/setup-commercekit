@@ -15,6 +15,12 @@ async function fixtureFile(): Promise<string> {
 }
 
 describe('verifyExecutableVersion', () => {
+  it('executes a real binary without a shell', async () => {
+    await expect(
+      verifyExecutableVersion(process.execPath, process.version),
+    ).resolves.toBeUndefined();
+  });
+
   it('accepts an exact version response', async () => {
     const file = await fixtureFile();
     const execute = vi.fn(async () => ({
