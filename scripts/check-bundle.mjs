@@ -13,9 +13,12 @@ function run(command, args) {
 
 const pnpmEntry = process.env['npm_execpath'];
 if (pnpmEntry?.includes('pnpm')) {
-  run(process.execPath, [pnpmEntry, 'bundle']);
+  run(pnpmEntry, ['bundle']);
 } else {
-  run('corepack', ['pnpm', 'bundle']);
+  run(process.platform === 'win32' ? 'corepack.cmd' : 'corepack', [
+    'pnpm',
+    'bundle',
+  ]);
 }
 
 const status = spawnSync('git', ['status', '--porcelain=v1', '--', 'dist'], {
