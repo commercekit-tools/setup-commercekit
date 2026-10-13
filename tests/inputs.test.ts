@@ -17,9 +17,13 @@ describe('readInputs', () => {
     expect(readInputs(() => '')).toEqual({ version: undefined });
   });
 
+  it('accepts the explicit latest stable selector', () => {
+    expect(readInputs(() => 'latest')).toEqual({ version: 'latest' });
+  });
+
   it('does not silently trim the version', () => {
     expect(() => readInputs(() => ' 0.1.0-preview.2')).toThrowError(
-      'The version input must be an exact semantic version',
+      'must be latest or an exact semantic version',
     );
   });
 });

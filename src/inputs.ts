@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 
-import { validateExactVersion } from './version.js';
+import { validateVersionInput } from './version.js';
 
 export interface ActionInputs {
   readonly version: string | undefined;
@@ -17,6 +17,6 @@ export function readInputs(getInput: GetInput = core.getInput): ActionInputs {
     trimWhitespace: false,
   });
   return {
-    version: version.length === 0 ? undefined : validateExactVersion(version),
+    version: version.length === 0 ? undefined : validateVersionInput(version),
   };
 }

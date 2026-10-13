@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { SetupError } from '../src/errors.js';
 import {
+  LATEST_STABLE_VERSION,
   MINIMUM_CLI_VERSION,
   validateExactVersion,
   validateStableReleaseVersion,
+  validateVersionInput,
 } from '../src/version.js';
 
 describe('validateExactVersion', () => {
@@ -55,6 +57,25 @@ describe('validateExactVersion', () => {
       expect((error as Error).message).not.toContain('latest');
     }
   });
+});
+
+describe('validateVersionInput', () => {
+  it('accepts the latest stable selector', () => {
+    expect(validateVersionInput('latest')).toBe(LATEST_STABLE_VERSION);
+  });
+
+  it('accepts an exact supported version', () => {
+    expect(validateVersionInput('0.1.0-preview.2')).toBe('0.1.0-preview.2');
+  });
+
+  it.each(['stable', 'preview', '^0.1.0', ' latest ', 'LATEST'])(
+    'rejects unsupported selector %j',
+    (version) => {
+      expect(() => validateVersionInput(version)).toThrowError(
+        'must be latest or an exact semantic version',
+      );
+    },
+  );
 });
 
 describe('validateStableReleaseVersion', () => {

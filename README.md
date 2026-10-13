@@ -68,28 +68,39 @@ These versions serve different purposes:
     version: '0.1.0-preview.2' # CLI installed by the Action
 ```
 
-The `version` input is optional. When supplied, it must be an exact semantic
-version. Mutable aliases and ranges such as `latest`, `stable`, `^0.1.0`, tags
+The `version` input is optional. It accepts `latest` or an exact semantic
+version. Other aliases and ranges such as `stable`, `preview`, `^0.1.0`, tags
 such as `cli-v0.1.0-preview.2`, and URLs are rejected. The first supported CLI
 version is `0.1.0-preview.2`.
 
-When `version` is omitted, the Action resolves GitHub's latest non-prerelease
-CommerceKit CLI release, verifies its discovery metadata, and then installs from
-that version's immutable `cli-v<version>` tag. It never treats a preview or
-release candidate as stable.
+After a stable CommerceKit CLI release is published, either form selects it:
+
+```yaml
+- uses: commercekit-tools/setup-commercekit@v1
+
+- uses: commercekit-tools/setup-commercekit@v1
+  with:
+    version: latest
+```
+
+When `version` is omitted or set to `latest`, the Action resolves GitHub's
+latest non-prerelease CommerceKit CLI release, verifies its discovery metadata,
+and then installs from that version's immutable `cli-v<version>` tag. It never
+treats a preview or release candidate as stable.
 
 CommerceKit currently publishes Preview releases only. Until the first stable
 CLI release is available, workflows must supply an exact Preview version such as
-`0.1.0-preview.2`; omitting `version` fails with a clear error.
+`0.1.0-preview.2`; omitting `version` or using `latest` fails with a clear
+error.
 
 For an exact valid version that has no matching public release, the Action
 fails. It never falls back to another release, Homebrew, or WinGet.
 
 ## Inputs
 
-| Input     | Required | Description                                                              |
-| --------- | -------- | ------------------------------------------------------------------------ |
-| `version` | No       | Exact CLI version. When omitted, resolves the latest stable CLI release. |
+| Input     | Required | Description                                                                      |
+| --------- | -------- | -------------------------------------------------------------------------------- |
+| `version` | No       | Exact CLI version, or `latest`. Omission also selects the latest stable release. |
 
 ## Outputs
 
@@ -132,9 +143,10 @@ failure behavior are also covered by unit tests.
 
 For every installation, the Action:
 
-1. validates an explicitly requested exact version and the runner target;
-2. when no version is supplied, verifies the latest stable release metadata and
-   obtains its exact stable semantic version;
+1. validates an explicitly requested exact version or `latest` and the runner
+   target;
+2. when no version is supplied or `latest` is requested, verifies the latest
+   stable release metadata and obtains its exact stable semantic version;
 3. resolves the immutable `cli-v<version>` release in `commercekit-tools/cli`;
 4. downloads `SHA256SUMS` and `release-manifest.json` over HTTPS;
 5. verifies the manifest against its `SHA256SUMS` entry;
@@ -183,14 +195,14 @@ is used only by the GitHub Actions runtime that executes the setup logic.
 
 ### Unsupported version
 
-Use an exact semantic version at or above `0.1.0-preview.2`. Remove prefixes,
-aliases, ranges, URLs, and surrounding whitespace.
+Use `latest` or an exact semantic version at or above `0.1.0-preview.2`. Remove
+unsupported aliases, prefixes, ranges, URLs, and surrounding whitespace.
 
 ### Latest stable release unavailable
 
-Supply an exact supported CLI version. The omitted-version path uses GitHub's
-latest non-prerelease release and fails while CommerceKit has only Preview
-releases or when stable release metadata is unavailable.
+Supply an exact supported CLI version. Omission and `latest` use GitHub's latest
+non-prerelease release and fail while CommerceKit has only Preview releases or
+when stable release metadata is unavailable.
 
 ### Release or target not found
 

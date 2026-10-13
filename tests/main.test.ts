@@ -61,4 +61,28 @@ describe('runAction', () => {
     expect(install).toHaveBeenCalledWith('1.0.0', target, expect.any(Object));
     expect(core.setOutput).toHaveBeenCalledWith('version', '1.0.0');
   });
+
+  it('resolves the latest stable version when explicitly requested', async () => {
+    vi.mocked(core.getInput).mockReturnValueOnce('latest');
+    const target = resolveTarget();
+    const resolveVersion = vi.fn(async () => '1.0.0');
+    const install = vi.fn(async () => ({
+      version: '1.0.0',
+      executablePath: join('/tool-cache', 'commercekit'),
+      target: target.target,
+      buildId: 'd'.repeat(40),
+      cacheHit: false,
+    }));
+
+    await runAction({ install, resolveVersion });
+
+    expect(resolveVersion).toHaveBeenCalledWith('latest', undefined);
+    expect(install).toHaveBeenCalledWith('1.0.0', target, expect.any(Object));
+    expect(core.info).toHaveBeenCalledWith(
+      'Resolving latest stable CommerceKit CLI',
+    );
+    expect(core.info).toHaveBeenCalledWith(
+      'Resolved latest stable CommerceKit CLI 1.0.0',
+    );
+  });
 });

@@ -30,9 +30,9 @@ disclosure.
 
 The Action downloads public CommerceKit releases over HTTPS, verifies the
 manifest and archive with SHA-256, and verifies the extracted executable's exact
-version. When no version is supplied, verified latest-stable metadata selects a
-version before installation continues from its immutable exact release tag.
-Checksum verification is mandatory.
+version. When no version is supplied or `latest` is requested, verified
+latest-stable metadata selects a version before installation continues from its
+immutable exact release tag. Checksum verification is mandatory.
 
 The Action does not use SAP credentials or webhooks. It has no telemetry, does
 not inspect or upload project source, and does not access private CommerceKit

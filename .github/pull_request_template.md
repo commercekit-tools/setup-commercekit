@@ -9,10 +9,10 @@
 ## Checklist
 
 - [ ] Explicit CLI versions remain exact-only
-- [ ] Omitted version resolves only the latest stable CLI release
+- [ ] Omitted version and `latest` resolve only the latest stable CLI release
 - [ ] Stable discovery is verified before using an immutable exact release tag
 - [ ] Minimum CLI version remains `0.1.0-preview.2`
-- [ ] No mutable alias or version range is accepted as input
+- [ ] No mutable alias other than `latest` or version range is accepted
 - [ ] Six target mappings remain covered
 - [ ] `release-manifest.json` validation remains mandatory
 - [ ] `SHA256SUMS` validates the manifest and archive

@@ -6,6 +6,7 @@ import * as toolCache from '@actions/tool-cache';
 
 import { downloadLatestStableVersion, type DownloadFile } from './release.js';
 import {
+  LATEST_STABLE_VERSION,
   validateExactVersion,
   validateStableReleaseVersion,
 } from './version.js';
@@ -28,7 +29,10 @@ export async function resolveCommerceKitVersion(
   requestedVersion: string | undefined,
   overrides: Partial<VersionResolutionDependencies> = {},
 ): Promise<string> {
-  if (requestedVersion !== undefined) {
+  if (
+    requestedVersion !== undefined &&
+    requestedVersion !== LATEST_STABLE_VERSION
+  ) {
     return validateExactVersion(requestedVersion);
   }
 

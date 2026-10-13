@@ -5,7 +5,7 @@ Action releases and CommerceKit CLI releases are independent:
 - `v1.0.0` identifies an immutable setup Action release.
 - `v1` is the moving compatible major Action alias.
 - `0.1.0-preview.2` is an exact CLI version that can be supplied through the
-  Action input; omission selects the latest stable CLI release.
+  Action input; `latest` or omission selects the latest stable CLI release.
 
 This repository does not publish an npm package.
 

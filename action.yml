@@ -5,8 +5,8 @@ author: CommerceKit
 inputs:
   version:
     description:
-      Exact CommerceKit CLI version to install. Omit for the latest stable
-      release.
+      Exact CommerceKit CLI version to install. Use latest or omit this input
+      for the latest stable release.
     required: false
 
 outputs:

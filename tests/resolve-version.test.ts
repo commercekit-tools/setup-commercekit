@@ -34,6 +34,15 @@ describe('resolveCommerceKitVersion', () => {
     expect(await readdir(dependencies.runnerTemp)).toEqual([]);
   });
 
+  it('resolves and validates the latest stable version when requested explicitly', async () => {
+    const dependencies = await resolutionDependencies();
+    await expect(
+      resolveCommerceKitVersion('latest', dependencies),
+    ).resolves.toBe('0.1.0');
+    expect(dependencies.resolveLatestStable).toHaveBeenCalledOnce();
+    expect(await readdir(dependencies.runnerTemp)).toEqual([]);
+  });
+
   it('rejects a prerelease returned by the stable resolver', async () => {
     const dependencies = await resolutionDependencies();
     const prereleaseDependencies = {

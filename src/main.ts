@@ -11,6 +11,7 @@ import {
   resolveCommerceKitVersion,
   type VersionResolutionDependencies,
 } from './resolve-version.js';
+import { LATEST_STABLE_VERSION } from './version.js';
 
 export interface ActionDependencies {
   readonly install?: typeof installCommerceKit;
@@ -27,9 +28,11 @@ export async function runAction(
   const install = dependencies.install ?? installCommerceKit;
   const resolveVersion =
     dependencies.resolveVersion ?? resolveCommerceKitVersion;
+  const resolvesLatestStable =
+    inputs.version === undefined || inputs.version === LATEST_STABLE_VERSION;
 
   core.info(
-    inputs.version === undefined
+    resolvesLatestStable
       ? 'Resolving latest stable CommerceKit CLI'
       : `Resolving CommerceKit CLI ${inputs.version}`,
   );
@@ -38,7 +41,7 @@ export async function runAction(
     inputs.version,
     dependencies.versionResolutionDependencies,
   );
-  if (inputs.version === undefined) {
+  if (resolvesLatestStable) {
     core.info(`Resolved latest stable CommerceKit CLI ${version}`);
   }
   const result = await install(version, target, {
