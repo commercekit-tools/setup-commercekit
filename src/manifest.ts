@@ -1,3 +1,5 @@
+import semver from 'semver';
+
 import { assertSafeAssetFilename, isSha256 } from './checksums.js';
 import { SetupError } from './errors.js';
 import {
@@ -125,7 +127,7 @@ function parseArtifact(
 
 export function parseReleaseManifest(
   content: string,
-  requestedVersion: string,
+  requestedVersion?: string,
 ): ReleaseManifest {
   let parsed: unknown;
   try {
@@ -150,7 +152,11 @@ export function parseReleaseManifest(
   if (parsed['product'] !== 'commercekit-cli') {
     throw new SetupError('Release manifest product is not commercekit-cli.');
   }
-  if (parsed['cliVersion'] !== requestedVersion) {
+  const cliVersion = requireString(parsed['cliVersion'], 'cliVersion');
+  if (semver.valid(cliVersion) !== cliVersion) {
+    throw new SetupError('Release manifest field cliVersion is invalid.');
+  }
+  if (requestedVersion !== undefined && cliVersion !== requestedVersion) {
     throw new SetupError(
       `Release manifest version does not match requested CommerceKit CLI ${requestedVersion}.`,
     );
@@ -175,13 +181,13 @@ export function parseReleaseManifest(
 
   const seenTargets = new Set<ReleaseTarget>();
   const artifacts = parsed['artifacts'].map((artifact) =>
-    parseArtifact(artifact, requestedVersion, seenTargets),
+    parseArtifact(artifact, cliVersion, seenTargets),
   );
 
   return Object.freeze({
     schemaVersion: SUPPORTED_MANIFEST_SCHEMA_VERSION,
     product: 'commercekit-cli',
-    cliVersion: requestedVersion,
+    cliVersion,
     buildId,
     channel,
     unsigned: parsed['unsigned'],

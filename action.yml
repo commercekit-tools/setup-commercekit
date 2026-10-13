@@ -1,12 +1,13 @@
 name: Setup CommerceKit CLI
-description:
-  Install and verify an exact CommerceKit CLI version on GitHub Actions runners.
+description: Install and verify the CommerceKit CLI on GitHub Actions runners.
 author: CommerceKit
 
 inputs:
   version:
-    description: Exact CommerceKit CLI version to install.
-    required: true
+    description:
+      Exact CommerceKit CLI version to install. Omit for the latest stable
+      release.
+    required: false
 
 outputs:
   version:

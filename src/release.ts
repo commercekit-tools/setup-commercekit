@@ -17,8 +17,10 @@ import {
   type ReleaseManifest,
 } from './manifest.js';
 import type { ReleaseTarget } from './platform.js';
+import { validateStableReleaseVersion } from './version.js';
 
 const RELEASE_REPOSITORY = 'commercekit-tools/cli';
+const LATEST_STABLE_RELEASE_BASE_URL = `https://github.com/${RELEASE_REPOSITORY}/releases/latest/download/`;
 export const CHECKSUMS_FILENAME = 'SHA256SUMS';
 export const MANIFEST_FILENAME = 'release-manifest.json';
 
@@ -42,19 +44,70 @@ export function releaseAssetUrl(version: string, filename: string): string {
   return new URL(encodeURIComponent(filename), releaseBaseUrl(version)).href;
 }
 
-async function downloadMetadataFile(
-  version: string,
-  filename: string,
-  destination: string,
+export function latestStableAssetUrl(filename: string): string {
+  assertSafeAssetFilename(filename);
+  return new URL(encodeURIComponent(filename), LATEST_STABLE_RELEASE_BASE_URL)
+    .href;
+}
+
+interface VerifiedIntegrityMetadata {
+  readonly checksums: ReadonlyMap<string, string>;
+  readonly manifestContent: string;
+}
+
+async function downloadIntegrityMetadata(
+  assetUrl: (filename: string) => string,
+  temporaryDirectory: string,
+  filenamePrefix: string,
+  downloadFile: DownloadFile,
+  failureMessage: (filename: string) => string,
+): Promise<VerifiedIntegrityMetadata> {
+  const checksumsPath = join(
+    temporaryDirectory,
+    `${filenamePrefix}-${CHECKSUMS_FILENAME}`,
+  );
+  try {
+    await downloadFile(assetUrl(CHECKSUMS_FILENAME), checksumsPath);
+  } catch {
+    throw new SetupError(failureMessage(CHECKSUMS_FILENAME));
+  }
+  const checksums = parseSha256Sums(await readFile(checksumsPath, 'utf8'));
+
+  const manifestPath = join(
+    temporaryDirectory,
+    `${filenamePrefix}-${MANIFEST_FILENAME}`,
+  );
+  try {
+    await downloadFile(assetUrl(MANIFEST_FILENAME), manifestPath);
+  } catch {
+    throw new SetupError(failureMessage(MANIFEST_FILENAME));
+  }
+  await verifyFileSha256(
+    manifestPath,
+    requireChecksum(checksums, MANIFEST_FILENAME),
+    MANIFEST_FILENAME,
+  );
+
+  return Object.freeze({
+    checksums,
+    manifestContent: await readFile(manifestPath, 'utf8'),
+  });
+}
+
+export async function downloadLatestStableVersion(
+  temporaryDirectory: string,
   downloadFile: DownloadFile,
 ): Promise<string> {
-  try {
-    return await downloadFile(releaseAssetUrl(version, filename), destination);
-  } catch {
-    throw new SetupError(
-      `Could not download ${filename} for CommerceKit CLI ${version}. Confirm that the exact public release exists.`,
-    );
-  }
+  const metadata = await downloadIntegrityMetadata(
+    latestStableAssetUrl,
+    temporaryDirectory,
+    'latest-stable',
+    downloadFile,
+    () =>
+      'Could not resolve the latest stable CommerceKit CLI release. Specify an exact version or confirm that a stable public release is available.',
+  );
+  const manifest = parseReleaseManifest(metadata.manifestContent);
+  return validateStableReleaseVersion(manifest.cliVersion);
 }
 
 export async function downloadVerifiedReleaseMetadata(
@@ -63,34 +116,17 @@ export async function downloadVerifiedReleaseMetadata(
   temporaryDirectory: string,
   downloadFile: DownloadFile = toolCache.downloadTool,
 ): Promise<VerifiedReleaseMetadata> {
-  const checksumsPath = join(temporaryDirectory, CHECKSUMS_FILENAME);
-  await downloadMetadataFile(
-    version,
-    CHECKSUMS_FILENAME,
-    checksumsPath,
+  const metadata = await downloadIntegrityMetadata(
+    (filename) => releaseAssetUrl(version, filename),
+    temporaryDirectory,
+    'exact',
     downloadFile,
+    (filename) =>
+      `Could not download ${filename} for CommerceKit CLI ${version}. Confirm that the exact public release exists.`,
   );
-  const checksums = parseSha256Sums(await readFile(checksumsPath, 'utf8'));
-
-  const manifestPath = join(temporaryDirectory, MANIFEST_FILENAME);
-  await downloadMetadataFile(
-    version,
-    MANIFEST_FILENAME,
-    manifestPath,
-    downloadFile,
-  );
-  await verifyFileSha256(
-    manifestPath,
-    requireChecksum(checksums, MANIFEST_FILENAME),
-    MANIFEST_FILENAME,
-  );
-
-  const manifest = parseReleaseManifest(
-    await readFile(manifestPath, 'utf8'),
-    version,
-  );
+  const manifest = parseReleaseManifest(metadata.manifestContent, version);
   const artifact = findManifestArtifact(manifest, target);
-  const checksum = requireChecksum(checksums, artifact.filename);
+  const checksum = requireChecksum(metadata.checksums, artifact.filename);
   if (checksum !== artifact.sha256) {
     throw new SetupError(
       `Release manifest and SHA256SUMS disagree for ${artifact.filename}.`,

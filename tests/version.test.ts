@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { SetupError } from '../src/errors.js';
-import { MINIMUM_CLI_VERSION, validateExactVersion } from '../src/version.js';
+import {
+  MINIMUM_CLI_VERSION,
+  validateExactVersion,
+  validateStableReleaseVersion,
+} from '../src/version.js';
 
 describe('validateExactVersion', () => {
   it.each(['0.1.0-preview.2', '0.1.0-preview.10', '0.1.0', '0.2.0', '1.0.0'])(
@@ -50,5 +54,29 @@ describe('validateExactVersion', () => {
       expect(error).toBeInstanceOf(SetupError);
       expect((error as Error).message).not.toContain('latest');
     }
+  });
+});
+
+describe('validateStableReleaseVersion', () => {
+  it.each(['0.1.0', '0.2.0', '1.0.0'])(
+    'accepts stable supported version %s',
+    (version) => {
+      expect(validateStableReleaseVersion(version)).toBe(version);
+    },
+  );
+
+  it.each(['invalid', '0.1.0-preview.2', '1.0.0-rc.1'])(
+    'rejects non-stable resolved version %s',
+    (version) => {
+      expect(() => validateStableReleaseVersion(version)).toThrowError(
+        'does not identify a stable semantic version',
+      );
+    },
+  );
+
+  it('applies the minimum supported version to stable resolution', () => {
+    expect(() => validateStableReleaseVersion('0.0.1')).toThrowError(
+      `CommerceKit CLI ${MINIMUM_CLI_VERSION} or newer is required by this Action.`,
+    );
   });
 });

@@ -1,8 +1,8 @@
 # Setup CommerceKit CLI
 
-Install and verify an exact
-[CommerceKit CLI](https://github.com/commercekit-tools/cli) version on a GitHub
-Actions runner.
+Install and verify a requested
+[CommerceKit CLI](https://github.com/commercekit-tools/cli) version, or the
+latest stable version, on a GitHub Actions runner.
 
 The Action downloads the official standalone CLI directly from an immutable
 public release. It validates the release manifest, verifies SHA-256 checksums,
@@ -68,19 +68,28 @@ These versions serve different purposes:
     version: '0.1.0-preview.2' # CLI installed by the Action
 ```
 
-The `version` input is required and must be an exact semantic version. Mutable
-aliases and ranges such as `latest`, `stable`, `^0.1.0`, tags such as
-`cli-v0.1.0-preview.2`, and URLs are rejected. The first supported CLI version
-is `0.1.0-preview.2`.
+The `version` input is optional. When supplied, it must be an exact semantic
+version. Mutable aliases and ranges such as `latest`, `stable`, `^0.1.0`, tags
+such as `cli-v0.1.0-preview.2`, and URLs are rejected. The first supported CLI
+version is `0.1.0-preview.2`.
+
+When `version` is omitted, the Action resolves GitHub's latest non-prerelease
+CommerceKit CLI release, verifies its discovery metadata, and then installs from
+that version's immutable `cli-v<version>` tag. It never treats a preview or
+release candidate as stable.
+
+CommerceKit currently publishes Preview releases only. Until the first stable
+CLI release is available, workflows must supply an exact Preview version such as
+`0.1.0-preview.2`; omitting `version` fails with a clear error.
 
 For an exact valid version that has no matching public release, the Action
 fails. It never falls back to another release, Homebrew, or WinGet.
 
 ## Inputs
 
-| Input     | Required | Description                                       |
-| --------- | -------- | ------------------------------------------------- |
-| `version` | Yes      | Exact CLI version, for example `0.1.0-preview.2`. |
+| Input     | Required | Description                                                              |
+| --------- | -------- | ------------------------------------------------------------------------ |
+| `version` | No       | Exact CLI version. When omitted, resolves the latest stable CLI release. |
 
 ## Outputs
 
@@ -123,26 +132,30 @@ failure behavior are also covered by unit tests.
 
 For every installation, the Action:
 
-1. validates the exact requested version and supported runner target;
-2. resolves the immutable `cli-v<version>` release in `commercekit-tools/cli`;
-3. downloads `SHA256SUMS` and `release-manifest.json` over HTTPS;
-4. verifies the manifest against its `SHA256SUMS` entry;
-5. validates manifest schema 1, version, target, filename, size, build ID, and
+1. validates an explicitly requested exact version and the runner target;
+2. when no version is supplied, verifies the latest stable release metadata and
+   obtains its exact stable semantic version;
+3. resolves the immutable `cli-v<version>` release in `commercekit-tools/cli`;
+4. downloads `SHA256SUMS` and `release-manifest.json` over HTTPS;
+5. verifies the manifest against its `SHA256SUMS` entry;
+6. validates manifest schema 1, version, target, filename, size, build ID, and
    checksum fields;
-6. cross-checks the archive checksum in the manifest and `SHA256SUMS`;
-7. downloads and hashes the target archive before extraction;
-8. discovers only the expected `commercekit` or `commercekit.exe` file;
-9. executes that file with `--version` without a shell and requires exact
-   version equality; and
-10. reverifies cached installations before reuse.
+7. cross-checks the archive checksum in the manifest and `SHA256SUMS`;
+8. downloads and hashes the target archive before extraction;
+9. discovers only the expected `commercekit` or `commercekit.exe` file;
+10. executes that file with `--version` without a shell and requires exact
+    version equality; and
+11. reverifies cached installations before reuse.
 
 SHA-256 detects corruption and mismatches against the public release metadata.
 It is not code signing and does not independently prove publisher identity. The
 current Preview CLI binaries are unsigned.
 
-The Action restricts downloads to exact HTTPS release URLs in the public
-`commercekit-tools/cli` repository. Metadata cannot provide another download
-origin or filesystem path. Checksum verification cannot be disabled.
+The Action restricts downloads to HTTPS release URLs in the public
+`commercekit-tools/cli` repository. Latest-stable URLs are used only to discover
+and verify a stable version; installation uses its exact immutable release tag.
+Metadata cannot provide another download origin or filesystem path. Checksum
+verification cannot be disabled.
 
 ## Tool cache
 
@@ -172,6 +185,12 @@ is used only by the GitHub Actions runtime that executes the setup logic.
 
 Use an exact semantic version at or above `0.1.0-preview.2`. Remove prefixes,
 aliases, ranges, URLs, and surrounding whitespace.
+
+### Latest stable release unavailable
+
+Supply an exact supported CLI version. The omitted-version path uses GitHub's
+latest non-prerelease release and fails while CommerceKit has only Preview
+releases or when stable release metadata is unavailable.
 
 ### Release or target not found
 

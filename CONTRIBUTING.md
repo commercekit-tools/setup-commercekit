@@ -46,7 +46,8 @@ pnpm test:integration
 
 It verifies release metadata, the selected archive, executable version, Action
 outputs, and a second-invocation cache hit. It does not install into a system
-directory or modify a shell profile.
+directory or modify a shell profile. Latest-stable discovery is covered with
+synthetic unit fixtures because the current public CLI releases are previews.
 
 ## Committed bundle
 

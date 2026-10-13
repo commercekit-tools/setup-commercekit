@@ -22,6 +22,19 @@ describe('parseReleaseManifest', () => {
     });
   });
 
+  it('discovers a valid manifest version without an expected version', () => {
+    const manifest = parseReleaseManifest(JSON.stringify(manifestFixture()));
+    expect(manifest.cliVersion).toBe('0.1.0-preview.2');
+  });
+
+  it('rejects a malformed manifest CLI version', () => {
+    expect(() =>
+      parseReleaseManifest(
+        JSON.stringify(manifestFixture({ cliVersion: 'latest' })),
+      ),
+    ).toThrowError('field cliVersion is invalid');
+  });
+
   it('allows unknown additive fields within schema 1', () => {
     expect(() =>
       parse(manifestFixture({ futureMetadata: true })),

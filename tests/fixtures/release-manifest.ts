@@ -5,6 +5,7 @@ const SYNTHETIC_BUILD_ID = 'b'.repeat(40);
 
 export function manifestArtifact(
   target: ReleaseTarget = 'linux-x64',
+  version = '0.1.0-preview.2',
 ): Record<string, unknown> {
   const [os, architecture] = target.split('-') as [string, string];
   const extension = os === 'windows' ? '.zip' : '.tar.gz';
@@ -12,7 +13,7 @@ export function manifestArtifact(
     target,
     os,
     architecture,
-    filename: `commercekit-v0.1.0-preview.2-${target}${extension}`,
+    filename: `commercekit-v${version}-${target}${extension}`,
     sha256: SYNTHETIC_SHA256,
     size: 1234,
   };

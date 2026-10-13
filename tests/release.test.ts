@@ -3,17 +3,22 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import {
   CHECKSUMS_FILENAME,
+  downloadLatestStableVersion,
   downloadVerifiedReleaseMetadata,
+  latestStableAssetUrl,
   MANIFEST_FILENAME,
   releaseAssetUrl,
   releaseBaseUrl,
   type DownloadFile,
 } from '../src/release.js';
-import { manifestFixture } from './fixtures/release-manifest.js';
+import {
+  manifestArtifact,
+  manifestFixture,
+} from './fixtures/release-manifest.js';
 
 function sha256(content: string): string {
   return createHash('sha256').update(content).digest('hex');
@@ -21,14 +26,22 @@ function sha256(content: string): string {
 
 async function fixtureDownloader(options?: {
   mismatchManifestArchive?: boolean;
-}): Promise<{ directory: string; download: DownloadFile }> {
+  version?: string;
+}): Promise<{ directory: string; download: Mock<DownloadFile> }> {
   const directory = await mkdtemp(join(tmpdir(), 'setup-commercekit-release-'));
-  const manifest = JSON.stringify(manifestFixture());
+  const version = options?.version ?? '0.1.0-preview.2';
+  const manifest = JSON.stringify(
+    manifestFixture({
+      cliVersion: version,
+      channel: version.includes('-') ? 'preview' : 'stable',
+      artifacts: [manifestArtifact('linux-x64', version)],
+    }),
+  );
   const manifestHash = sha256(manifest);
   const archiveHash = options?.mismatchManifestArchive
     ? 'c'.repeat(64)
     : 'a'.repeat(64);
-  const checksums = `${manifestHash}  ${MANIFEST_FILENAME}\n${archiveHash}  commercekit-v0.1.0-preview.2-linux-x64.tar.gz\n`;
+  const checksums = `${manifestHash}  ${MANIFEST_FILENAME}\n${archiveHash}  commercekit-v${version}-linux-x64.tar.gz\n`;
   const files = new Map([
     [CHECKSUMS_FILENAME, checksums],
     [MANIFEST_FILENAME, manifest],
@@ -57,6 +70,48 @@ describe('release URLs', () => {
     expect(() =>
       releaseAssetUrl('0.1.0-preview.2', '../asset.zip'),
     ).toThrowError('unsafe asset filename');
+  });
+
+  it('uses GitHub latest only for stable-version discovery', () => {
+    expect(latestStableAssetUrl(MANIFEST_FILENAME)).toBe(
+      'https://github.com/commercekit-tools/cli/releases/latest/download/release-manifest.json',
+    );
+  });
+});
+
+describe('downloadLatestStableVersion', () => {
+  it('verifies metadata and resolves a stable semantic version', async () => {
+    const { directory, download } = await fixtureDownloader({
+      version: '0.1.0',
+    });
+
+    await expect(
+      downloadLatestStableVersion(directory, download),
+    ).resolves.toBe('0.1.0');
+    expect(download).toHaveBeenCalledTimes(2);
+    for (const [url] of download.mock.calls) {
+      expect(url).toMatch(
+        /^https:\/\/github\.com\/commercekit-tools\/cli\/releases\/latest\/download\//u,
+      );
+    }
+  });
+
+  it('rejects prerelease metadata from latest stable discovery', async () => {
+    const { directory, download } = await fixtureDownloader();
+    await expect(
+      downloadLatestStableVersion(directory, download),
+    ).rejects.toThrowError('does not identify a stable semantic version');
+  });
+
+  it('reports unavailable stable releases without response details', async () => {
+    const directory = await mkdtemp(
+      join(tmpdir(), 'setup-commercekit-release-'),
+    );
+    await expect(
+      downloadLatestStableVersion(directory, () =>
+        Promise.reject(new Error('raw HTTP response')),
+      ),
+    ).rejects.toThrowError('Could not resolve the latest stable');
   });
 });
 

@@ -14,7 +14,7 @@ discussion.
 Email `commercekit.tools@gmail.com` with the subject
 `Setup CommerceKit security report`. Include:
 
-- the Action reference and requested CLI version;
+- the Action reference and requested or resolved CLI version;
 - the runner operating system and architecture;
 - whether the failure involved metadata, checksum, extraction, cache, PATH, or
   executable verification;
@@ -28,9 +28,11 @@ disclosure.
 
 ## Security properties
 
-The Action downloads exact public CommerceKit releases over HTTPS, verifies the
+The Action downloads public CommerceKit releases over HTTPS, verifies the
 manifest and archive with SHA-256, and verifies the extracted executable's exact
-version. Checksum verification is mandatory.
+version. When no version is supplied, verified latest-stable metadata selects a
+version before installation continues from its immutable exact release tag.
+Checksum verification is mandatory.
 
 The Action does not use SAP credentials or webhooks. It has no telemetry, does
 not inspect or upload project source, and does not access private CommerceKit

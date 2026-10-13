@@ -7,10 +7,16 @@ import {
   type InstallDependencies,
 } from './install.js';
 import { resolveTarget } from './platform.js';
+import {
+  resolveCommerceKitVersion,
+  type VersionResolutionDependencies,
+} from './resolve-version.js';
 
 export interface ActionDependencies {
   readonly install?: typeof installCommerceKit;
   readonly installDependencies?: Partial<InstallDependencies>;
+  readonly resolveVersion?: typeof resolveCommerceKitVersion;
+  readonly versionResolutionDependencies?: Partial<VersionResolutionDependencies>;
 }
 
 export async function runAction(
@@ -19,10 +25,23 @@ export async function runAction(
   const inputs = readInputs();
   const target = resolveTarget();
   const install = dependencies.install ?? installCommerceKit;
+  const resolveVersion =
+    dependencies.resolveVersion ?? resolveCommerceKitVersion;
 
-  core.info(`Resolving CommerceKit CLI ${inputs.version}`);
+  core.info(
+    inputs.version === undefined
+      ? 'Resolving latest stable CommerceKit CLI'
+      : `Resolving CommerceKit CLI ${inputs.version}`,
+  );
   core.info(`Runner target: ${target.target}`);
-  const result = await install(inputs.version, target, {
+  const version = await resolveVersion(
+    inputs.version,
+    dependencies.versionResolutionDependencies,
+  );
+  if (inputs.version === undefined) {
+    core.info(`Resolved latest stable CommerceKit CLI ${version}`);
+  }
+  const result = await install(version, target, {
     log: core.info,
     debug: core.debug,
     ...dependencies.installDependencies,

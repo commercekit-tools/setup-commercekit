@@ -3,7 +3,7 @@ import * as core from '@actions/core';
 import { validateExactVersion } from './version.js';
 
 export interface ActionInputs {
-  readonly version: string;
+  readonly version: string | undefined;
 }
 
 type GetInput = (
@@ -12,9 +12,11 @@ type GetInput = (
 ) => string;
 
 export function readInputs(getInput: GetInput = core.getInput): ActionInputs {
+  const version = getInput('version', {
+    required: false,
+    trimWhitespace: false,
+  });
   return {
-    version: validateExactVersion(
-      getInput('version', { required: true, trimWhitespace: false }),
-    ),
+    version: version.length === 0 ? undefined : validateExactVersion(version),
   };
 }
