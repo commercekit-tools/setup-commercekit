@@ -11,14 +11,18 @@
   Packages dependency. Registry integrity:
   `sha512-SMcyyWaeHdtlztt99xtWlJycSAspSTGvCaWJH7M2+u+on77JHwo8boTBOc9UUC0BQHDPo/VHmOj4gpt/XIbqmw==`.
 - New setup event/reporting helpers require unpublished **0.0.6** from
-  action-kit source `b88ed58976af9aee532488d82ea09340b35a4d8c`.
+  action-kit source `475cc4db42f79310240496201f90d7047aa54330`.
 - Exact reviewed tarball: `commercekit-tools-notification-contract-0.0.6.tgz`,
-  18852 bytes; SHA256
-  `645b38e7456e63b96e7630da7d63c1f6ccbf27854b5b7001ff77db435afa2393`; integrity
-  `sha512-eqV2tVnjmuYtG5ExjqScPCGxxR8MW8QlbeuXMA/YjzKzujgSMf9oMQpvQDqmysGhHLN8918XtNh9gbO7UQH4Ug==`.
+  19140 bytes; SHA256
+  `e4b79576328c2992a96fed087e9ba6e63970e8b54d6fca976a6652702a7a73a9`; integrity
+  `sha512-n6F84900sDPBeYm5dnf8HLCM9B2DUVATEeF717dqKsSXTJtq1FIj/3hZ2UcNTtXe7v8R90HYF6HIom4auM8Kyw==`.
 - Candidate consumer used an exact `file:` tarball dependency only in a private
   temporary workspace. Normal manifests and lockfile contain no local links or
   invented published version. Normal committed bundle remains unchanged.
+
+The reviewed privacy fix also covers percent-encoded known-secret matching. The
+complete consumer gate was replayed against this final artifact; earlier WIP
+results are not used as final provenance.
 
 ## Executed checks
 
@@ -39,7 +43,7 @@ Commands actually executed in the isolated reviewed candidate: `pnpm install`,
 `pnpm install --frozen-lockfile`, `pnpm bundle`, `pnpm quality`,
 `pnpm test:integration` and local actionlint. All passed. The generated
 candidate bundle SHA256 is
-`f3350fba352a9e4370f50808abf0f5ae862250c4621a6511eec05645e72a4ea8`. The
+`ccec5024b018a009fada020bb6cebe292160b45cc2ee1224f6e4d957d9c81bae`. The
 candidate workspace retains a private temporary Git commit of its generated
 bundle to exercise the repository's committed-dist consistency check. No
 candidate bundle enters normal committed files.
