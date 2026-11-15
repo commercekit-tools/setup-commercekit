@@ -1,5 +1,9 @@
 # Setup CommerceKit CLI
 
+> **Registry-backed reporting:** consistent notifications and GitHub summaries
+> consume exact published notification-contract 0.0.6 and are bundled for
+> runtime consumers. See [reporting validation](docs/reporting-validation.md).
+
 Install and verify a requested
 [CommerceKit CLI](https://github.com/commercekit-tools/cli) version, or the
 latest stable version, on a GitHub Actions runner.
@@ -104,16 +108,18 @@ fails. It never falls back to another release, Homebrew, or WinGet.
 
 ## Outputs
 
-| Output      | Meaning                                            | Example                                        |
-| ----------- | -------------------------------------------------- | ---------------------------------------------- |
-| `version`   | Exact installed CLI version.                       | `0.1.0-preview.2`                              |
-| `path`      | Absolute path to the verified executable.          | Runner tool-cache path ending in `commercekit` |
-| `target`    | Normalized release target selected for the runner. | `linux-x64`                                    |
-| `build-id`  | Verified identity from `release-manifest.json`.    | 40-character source identity                   |
-| `cache-hit` | Lowercase string for verified tool-cache reuse.    | `true`                                         |
+| Output               | Meaning                                             | Example                                        |
+| -------------------- | --------------------------------------------------- | ---------------------------------------------- |
+| `version`            | Exact installed CLI version.                        | `0.1.0-preview.2`                              |
+| `path`               | Absolute path to the verified executable.           | Runner tool-cache path ending in `commercekit` |
+| `target`             | Normalized release target selected for the runner.  | `linux-x64`                                    |
+| `build-id`           | Verified identity from `release-manifest.json`.     | 40-character source identity                   |
+| `cache-hit`          | Lowercase string for verified tool-cache reuse.     | `true`                                         |
+| `notification-event` | Validated setup event with safe inputs and outcome. | Bounded JSON for the existing Notify action.   |
 
-Outputs are set only after the executable passes integrity and exact-version
-verification.
+Installation outputs are set only after the executable passes integrity and
+exact-version verification. The Action also emits `notification-event` for
+handled failures before the Action reports failure.
 
 ```yaml
 - name: Show resolved installation
@@ -124,6 +130,46 @@ verification.
     echo "Installed target: $COMMERCEKIT_TARGET"
     "$COMMERCEKIT_PATH" --version
 ```
+
+## Consistent notifications and job summaries
+
+The Action uses the existing shared notification contract and the existing
+Notify Action. It does not add a webhook input or delivery code.
+`commercekit.setup.completed` reports setup success or failure with the exact
+`version` input name, effective `latest` when omitted, validation/truncation
+metadata, verified installed version, target, build identity, cache reuse and
+duration when available. Failures include a safe code and explanation. A cache
+hit remains successful; the Action does not invent a warning condition.
+
+Every handled success or failure writes the shared GitHub summary layout: status
+icon and label, result table, input table, validation/truncation state and safe
+error detail. This includes invalid version, stable-release discovery, download,
+checksum and executable-verification failures. The shared visual vocabulary uses
+✅ success, ❌ failure and ⚠️ warnings where applicable. Raw exceptions, URL
+credentials/query strings, known secret/token patterns and absolute executable
+paths are not included in summaries or notifications. Reporting errors produce a
+fixed safe warning while preserving installation outputs and the original
+success/failure outcome.
+
+Use compatible reviewed immutable Setup and Notify commits. Replace both
+placeholders below after reviewing their registry-backed validation:
+
+```yaml
+- uses: commercekit-tools/setup-commercekit@REPLACE_WITH_REVIEWED_SETUP_COMMIT
+  id: setup
+  with:
+    version: '0.1.0-preview.2'
+- uses: commercekit-tools/notify@REPLACE_WITH_COMPATIBLE_NOTIFY_COMMIT
+  if: ${{ always() && steps.setup.outputs.notification-event != '' }}
+  with:
+    provider: slack # or teams-workflow
+    event-json: ${{ steps.setup.outputs.notification-event }}
+    webhook-url: ${{ secrets.COMMERCEKIT_NOTIFICATION_WEBHOOK }}
+    fail-on-notification-error: 'false'
+```
+
+Older Notify versions reject the new setup event. Webhook credentials belong
+only on Notify; notification delivery does not replace the setup step's outcome.
 
 ## Supported targets
 

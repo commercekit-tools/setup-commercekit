@@ -9,7 +9,17 @@ Thank you for helping improve Setup CommerceKit CLI.
 - Git
 
 The repository pins pnpm in `package.json`; do not install or publish this
-package through npm.
+package through npm. Development installation also reads the existing shared
+notification contract from GitHub Packages. Configure package-read
+authentication in user-level npm configuration; the repository scope
+configuration contains no credentials. Trusted CI installation grants
+`packages: read` only to its quality job. Fork workflows may lack package
+access; do not use privileged untrusted PR execution to bypass that restriction.
+
+Normal reporting development uses exact published notification-contract 0.0.6.
+No source checkout, candidate preparation or file:tarball dependency is needed.
+The historical candidate procedure is archived in
+`docs/reporting-validation.md`.
 
 ```bash
 corepack enable
@@ -45,9 +55,10 @@ pnpm test:integration
 ```
 
 It verifies release metadata, the selected archive, executable version, Action
-outputs, and a second-invocation cache hit. It does not install into a system
-directory or modify a shell profile. Latest-stable discovery is covered with
-synthetic unit fixtures because the current public CLI releases are previews.
+outputs, validated notification contexts, success/failure summaries and a
+second-invocation cache hit. It does not install into a system directory or
+modify a shell profile. Latest-stable discovery is covered with synthetic unit
+fixtures because the current public CLI releases are previews.
 
 ## Committed bundle
 

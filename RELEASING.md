@@ -18,6 +18,17 @@ This repository does not publish an npm package.
   major version.
 - CLI preview maturity does not change the Action's interface version.
 
+## Reporting consistency
+
+The Action consumes exact published notification-contract 0.0.6, with its
+registry lockfile and standalone bundle committed. Normal development and
+runtime use no candidate dependency or source checkout. The package-only
+publication is separate from this Action's release process; it created no Action
+tag or Marketplace release. See
+[reporting-validation.md](docs/reporting-validation.md) for exact provenance and
+normal validation evidence. All quality/security checks and six native runner
+jobs must pass on the reviewed release commit.
+
 ## Release prerequisites
 
 Before creating a release:

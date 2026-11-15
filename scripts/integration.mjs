@@ -2,11 +2,13 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import assert from 'node:assert/strict';
+import { parseNotificationEventJson } from '@commercekit-tools/notification-contract';
 
 const VERSION = '0.1.0-preview.2';
 const root = new URL('..', import.meta.url);
 
-function runAction(environment) {
+function runAction(environment, expectedExitCode = 0) {
   const result = spawnSync(process.execPath, ['dist/index.js'], {
     cwd: root,
     encoding: 'utf8',
@@ -15,7 +17,7 @@ function runAction(environment) {
     windowsHide: true,
   });
   if (result.error) throw result.error;
-  if (result.status !== 0) {
+  if (result.status !== expectedExitCode) {
     process.stderr.write(result.stdout);
     process.stderr.write(result.stderr);
     throw new Error('Bundled Action integration invocation failed.');
@@ -72,16 +74,28 @@ try {
   };
 
   const firstOutput = join(directory, 'first-output');
+  const firstSummary = join(directory, 'first-summary');
   await writeFile(firstOutput, '');
-  runAction({ ...baseEnvironment, GITHUB_OUTPUT: firstOutput });
+  await writeFile(firstSummary, '');
+  runAction({
+    ...baseEnvironment,
+    GITHUB_OUTPUT: firstOutput,
+    GITHUB_STEP_SUMMARY: firstSummary,
+  });
   const first = parseFileCommands(await readFile(firstOutput, 'utf8'));
   if (first.get('cache-hit') !== 'false') {
     throw new Error('First isolated invocation was not a cache miss.');
   }
 
   const secondOutput = join(directory, 'second-output');
+  const secondSummary = join(directory, 'second-summary');
   await writeFile(secondOutput, '');
-  runAction({ ...baseEnvironment, GITHUB_OUTPUT: secondOutput });
+  await writeFile(secondSummary, '');
+  runAction({
+    ...baseEnvironment,
+    GITHUB_OUTPUT: secondOutput,
+    GITHUB_STEP_SUMMARY: secondSummary,
+  });
   const second = parseFileCommands(await readFile(secondOutput, 'utf8'));
   if (second.get('cache-hit') !== 'true') {
     throw new Error('Second isolated invocation was not a verified cache hit.');
@@ -94,6 +108,68 @@ try {
   }
   runBinary(executablePath, ['--help']);
 
+  for (const [output, summaryFile, expectedCacheHit] of [
+    [first, firstSummary, false],
+    [second, secondSummary, true],
+  ]) {
+    const event = parseNotificationEventJson(output.get('notification-event'));
+    assert.equal(event.eventType, 'commercekit.setup.completed');
+    assert.equal(event.status, 'success');
+    assert.equal(event.source.component, 'setup-commercekit');
+    assert.equal(event.data.version, VERSION);
+    assert.equal(event.data.target, output.get('target'));
+    assert.equal(event.data.buildId, output.get('build-id'));
+    assert.equal(event.data.cacheHit, expectedCacheHit);
+    assert.equal(event.data.inputsValidated, true);
+    assert.equal(event.data.inputsTruncated, false);
+    assert.deepEqual(event.data.inputs, { version: VERSION });
+    assert(
+      Number.isSafeInteger(event.data.durationMs) && event.data.durationMs >= 0,
+    );
+    assert(!JSON.stringify(event).includes(directory));
+    const summary = await readFile(summaryFile, 'utf8');
+    for (const detail of [
+      '✅',
+      'Succeeded',
+      'Inputs',
+      VERSION,
+      output.get('target'),
+      output.get('build-id'),
+    ])
+      assert(summary.includes(detail));
+    assert(!summary.includes(directory));
+  }
+
+  const failedOutput = join(directory, 'failed-output');
+  const failedSummary = join(directory, 'failed-summary');
+  await writeFile(failedOutput, '');
+  await writeFile(failedSummary, '');
+  const invalidToken = ['eyJsynthetic', 'payload', 'signature'].join('.');
+  const failedLogs = runAction(
+    {
+      ...baseEnvironment,
+      INPUT_VERSION: invalidToken,
+      GITHUB_OUTPUT: failedOutput,
+      GITHUB_STEP_SUMMARY: failedSummary,
+    },
+    1,
+  );
+  const failed = parseFileCommands(await readFile(failedOutput, 'utf8'));
+  const failureEvent = parseNotificationEventJson(
+    failed.get('notification-event'),
+  );
+  assert.equal(failureEvent.eventType, 'commercekit.setup.completed');
+  assert.equal(failureEvent.status, 'failure');
+  assert.equal(failureEvent.data.inputsValidated, false);
+  assert.deepEqual(failureEvent.data.inputs, { version: '[REDACTED]' });
+  assert.equal(failureEvent.data.error.code, 'invalid-input');
+  assert.equal(failed.get('version'), undefined);
+  const failureSummary = await readFile(failedSummary, 'utf8');
+  assert(failureSummary.includes('❌') && failureSummary.includes('Failed'));
+  assert(!JSON.stringify(failureEvent).includes(invalidToken));
+  assert(!failureSummary.includes(invalidToken));
+  assert(!failedLogs.includes(invalidToken));
+
   process.stdout.write(
     `${JSON.stringify(
       {
@@ -101,6 +177,9 @@ try {
         target: second.get('target'),
         buildId: second.get('build-id'),
         cacheHit: second.get('cache-hit'),
+        notificationContextsVerified: true,
+        summariesVerified: true,
+        handledFailureVerified: true,
       },
       null,
       2,
