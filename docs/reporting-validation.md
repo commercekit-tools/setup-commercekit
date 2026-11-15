@@ -42,7 +42,7 @@ Status vocabulary: PASS, FAIL, BLOCKED, NOT RUN.
 | Actual registry-backed bundle integration    | PASS    | Public CLI preview.2 installed/verified on darwin-arm64, verified cache reuse, success and invalid-input failure events/summaries   |
 | Normal bundle regeneration                   | PASS    | SHA256 above matches the reviewed candidate exactly                                                                                 |
 | Public scan, production audit, workflow lint | PASS    | Scan passed; no known vulnerabilities; local actionlint and diff checks passed                                                      |
-| Final committed bundle check                 | NOT RUN | Full quality must pass after the regenerated dist is committed and before push                                                      |
+| Final committed bundle check                 | PASS    | Full normal `pnpm quality` passed after committing registry-backed dist; no generated changes                                       |
 | Six native runner integration jobs           | NOT RUN | Final-head Linux/macOS/Windows x64/ARM64 jobs must pass before merge; earlier baseline-bundle jobs are not feature evidence         |
 | Live Slack/Teams delivery                    | NOT RUN | Notify owns this separately authorized capability; no provider send performed                                                       |
 
