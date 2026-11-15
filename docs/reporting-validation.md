@@ -1,68 +1,81 @@
 # Reporting consistency validation
 
-## Scope and provenance
+## Published dependency and provenance
+
+The owner-authorized
+[package-only publication run 43678067818](https://github.com/commercekit-tools/action-kit/actions/runs/43678067818)
+published `@commercekit-tools/notification-contract@0.0.6` from action-kit main
+`3fecce40414d709884fa48e48eca278f470b20b0`. Its main CI and CodeQL passed before
+publication. Registry version, integrity and required public exports were
+verified before this consumer adoption.
 
 - Inspected setup main: `7f650f3162ab027bfd784cf879832f44d3248584`.
-- Feature branch: `feat/consistent-action-reporting`.
-- Existing version input and installation/integrity behavior remain unchanged.
-- Shared APIs reused: captured input context, bounded redaction, setup event
-  factory/schema validation, safe GitHub context and common summary rendering.
-- Normal registry baseline: notification-contract **0.0.5**, exact GitHub
-  Packages dependency. Registry integrity:
-  `sha512-SMcyyWaeHdtlztt99xtWlJycSAspSTGvCaWJH7M2+u+on77JHwo8boTBOc9UUC0BQHDPo/VHmOj4gpt/XIbqmw==`.
-- New setup event/reporting helpers require unpublished **0.0.6** from
-  action-kit source `475cc4db42f79310240496201f90d7047aa54330`.
-- Exact reviewed tarball: `commercekit-tools-notification-contract-0.0.6.tgz`,
-  19140 bytes; SHA256
-  `e4b79576328c2992a96fed087e9ba6e63970e8b54d6fca976a6652702a7a73a9`; integrity
+- Feature source before registry adoption:
+  `5b8f44d20ecefa8196800f9c90ee5ecf79e48a5c`.
+- Exact normal dependency: **0.0.6**, installed from GitHub Packages with a
+  reproducible registry lockfile and reviewed release-age exception.
+- Registry integrity:
   `sha512-n6F84900sDPBeYm5dnf8HLCM9B2DUVATEeF717dqKsSXTJtq1FIj/3hZ2UcNTtXe7v8R90HYF6HIom4auM8Kyw==`.
-- Candidate consumer used an exact `file:` tarball dependency only in a private
-  temporary workspace. Normal manifests and lockfile contain no local links or
-  invented published version. Normal committed bundle remains unchanged.
+- Registry shasum: `8030f643d1dd6d741caa2c3c0ba321ad82b30cca`.
+- Published artifact SHA256:
+  `e4b79576328c2992a96fed087e9ba6e63970e8b54d6fca976a6652702a7a73a9`.
+- Regenerated normal bundle SHA256:
+  `ccec5024b018a009fada020bb6cebe292160b45cc2ee1224f6e4d957d9c81bae`,
+  byte-identical to the final reviewed source-packed candidate.
 
-The reviewed privacy fix also covers percent-encoded known-secret matching. The
-complete consumer gate was replayed against this final artifact; earlier WIP
-results are not used as final provenance.
+Normal installation and runtime require no candidate flag, file dependency or
+shared-source checkout. Runtime consumers execute the standalone bundle without
+registry credentials. Existing version input and installation/integrity behavior
+remain unchanged. Shared APIs own captured input context, bounded redaction,
+setup event factories/schema validation, safe GitHub context and common
+summaries.
 
-## Executed checks
+## Executed normal registry checks
 
 Status vocabulary: PASS, FAIL, BLOCKED, NOT RUN.
 
-| Check                                                                    | Status  | Evidence                                                                                                                                                           |
-| ------------------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Baseline frozen installation and coverage                                | PASS    | 143 tests/11 files; 93.75% statements, 90% branches, 93.1% functions, 93.92% lines                                                                                 |
-| Reviewed candidate frozen installation and full quality                  | PASS    | 154 tests/11 files; 94.06% statements, 90.29% branches, 93.54% functions, 94.21% lines; unchanged thresholds/source inclusion                                      |
-| Actual reviewed-candidate bundle integration                             | PASS    | Public CLI preview.2 installed and verified on darwin-arm64; second invocation verified cache reuse; success and invalid-input failure event/summary checks passed |
-| Candidate bundle consistency, license notices, scan and production audit | PASS    | Byte consistency; public scan passed; no known vulnerabilities                                                                                                     |
-| Action/workflow lint and source formatting                               | PASS    | Local actionlint, Prettier and git diff check                                                                                                                      |
-| Normal registry/release readiness                                        | BLOCKED | New event/helpers unavailable in published 0.0.5; requires separately authorized 0.0.6 publication and actual registry repinning/rebuild                           |
-| Six native runner integration jobs                                       | NOT RUN | Required on a final registry-backed implementation; local host cannot establish all six targets                                                                    |
-| Slack/Teams live delivery                                                | NOT RUN | Notify owns this capability; no provider send performed                                                                                                            |
+| Check                                        | Status  | Evidence                                                                                                                            |
+| -------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Frozen installation and public exports       | PASS    | Exact registry 0.0.6 and required public setup/reporting APIs verified                                                              |
+| Formatting, lint and strict types            | PASS    | Normal source passes without candidate switches                                                                                     |
+| Unit/integration coverage                    | PASS    | 154 tests/11 files; 94.06% statements, 90.29% branches, 93.54% functions, 94.21% lines; existing thresholds and inclusion unchanged |
+| Actual registry-backed bundle integration    | PASS    | Public CLI preview.2 installed/verified on darwin-arm64, verified cache reuse, success and invalid-input failure events/summaries   |
+| Normal bundle regeneration                   | PASS    | SHA256 above matches the reviewed candidate exactly                                                                                 |
+| Public scan, production audit, workflow lint | PASS    | Scan passed; no known vulnerabilities; local actionlint and diff checks passed                                                      |
+| Final committed bundle check                 | NOT RUN | Full quality must pass after the regenerated dist is committed and before push                                                      |
+| Six native runner integration jobs           | NOT RUN | Final-head Linux/macOS/Windows x64/ARM64 jobs must pass before merge; earlier baseline-bundle jobs are not feature evidence         |
+| Live Slack/Teams delivery                    | NOT RUN | Notify owns this separately authorized capability; no provider send performed                                                       |
 
-Commands actually executed in the isolated reviewed candidate: `pnpm install`,
-`pnpm install --frozen-lockfile`, `pnpm bundle`, `pnpm quality`,
-`pnpm test:integration` and local actionlint. All passed. The generated
-candidate bundle SHA256 is
-`ccec5024b018a009fada020bb6cebe292160b45cc2ee1224f6e4d957d9c81bae`. The
-candidate workspace retains a private temporary Git commit of its generated
-bundle to exercise the repository's committed-dist consistency check. No
-candidate bundle enters normal committed files.
+Commands actually executed: `pnpm install --frozen-lockfile`, `pnpm bundle`,
+public-export assertions, `pnpm format:check`, `pnpm lint`, `pnpm typecheck`,
+`pnpm test:coverage`, `pnpm test:integration`, `pnpm scan:public`,
+`pnpm audit --prod --audit-level=high`, actionlint and `git diff --check`. Full
+committed-bundle quality and final hosted checks remain required before merge.
+The registry-publication compatibility gate is resolved.
 
-New tests cover complete input/result projection, workflow reference parity,
+Tests cover complete input/result projection, workflow reference parity,
 allowlisted GitHub environment access, safe invalid settings, JWT/URL credential
-redaction, bounded truncation, malicious Markdown/HTML, successful cache reuse,
-known and unknown failures, and preservation when reporting fails. The bundled
-integration exercises the real entry point, verifies two successful invocations
-and an invalid-input failure, and checks event outputs plus GitHub summaries in
-controlled temporary files. The fixture remains an existing public CLI release;
-no SAP operation is involved.
+redaction, bounded truncation, malicious Markdown/HTML, cache reuse, known and
+unknown failures, and preservation when reporting fails. The bundled integration
+executes the actual entry point, checks two successful invocations plus invalid
+input failure, and validates events/summaries in controlled temporary files. No
+SAP operation is involved.
 
-## Remaining gates
+## Historical candidate evidence
 
-Package publication and consumer adoption are separate owner decisions. After
-separate authorization, verify the registry artifact/public exports, pin it
-exactly, regenerate normal lockfile/bundle/license notices and rerun quality,
-public-release integration and all six native runners. Ensure Notify supports
-`commercekit.setup.completed` before consuming its event. No OAuth, transport,
-provider delivery or replacement event schema is added. No publication, release
-tag, deployment, provider send or SAP operation is part of this implementation.
+Before publication, source `475cc4db42f79310240496201f90d7047aa54330` was packed
+and tested in private consumers. Its artifact integrity matches the published
+registry package exactly. The pre-publication procedure and former compatibility
+blocker are archived at immutable setup commit
+[`5b8f44d20ecefa8196800f9c90ee5ecf79e48a5c`](https://github.com/commercekit-tools/setup-commercekit/tree/5b8f44d20ecefa8196800f9c90ee5ecf79e48a5c).
+Those private file dependencies are not part of normal development or CI.
+
+## Remaining release gates
+
+All final-head quality, CodeQL and six native runner jobs must pass before
+merge. Compatible Notify must consume the same published contract before
+receiving `commercekit.setup.completed`. Action release review, Git
+tags/Marketplace publication and live provider validation remain separate owner
+decisions. No OAuth, transport, delivery or replacement schema was added. Only
+the shared package publication was authorized; no Action release, Git tag,
+deployment, provider send or SAP operation is part of this consumer update.

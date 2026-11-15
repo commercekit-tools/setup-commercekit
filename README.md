@@ -1,11 +1,8 @@
 # Setup CommerceKit CLI
 
-> **Reporting candidate:** consistent notifications and GitHub summaries require
-> the unpublished notification-contract 0.0.6 extension. Source integration is
-> validated with an exact packed candidate in an isolated workspace. Normal
-> dependencies pin published 0.0.5 and the committed bundle is unchanged until a
-> separately authorized publication and registry-backed rebuild. See
-> [reporting validation](docs/reporting-validation.md).
+> **Registry-backed reporting:** consistent notifications and GitHub summaries
+> consume exact published notification-contract 0.0.6 and are bundled for
+> runtime consumers. See [reporting validation](docs/reporting-validation.md).
 
 Install and verify a requested
 [CommerceKit CLI](https://github.com/commercekit-tools/cli) version, or the
@@ -121,8 +118,8 @@ fails. It never falls back to another release, Homebrew, or WinGet.
 | `notification-event` | Validated setup event with safe inputs and outcome. | Bounded JSON for the existing Notify action.   |
 
 Installation outputs are set only after the executable passes integrity and
-exact-version verification. The reporting candidate also emits
-`notification-event` for handled failures before the Action reports failure.
+exact-version verification. The Action also emits `notification-event` for
+handled failures before the Action reports failure.
 
 ```yaml
 - name: Show resolved installation
@@ -136,8 +133,8 @@ exact-version verification. The reporting candidate also emits
 
 ## Consistent notifications and job summaries
 
-The reporting candidate uses the existing shared notification contract and the
-existing Notify Action. It does not add a webhook input or delivery code.
+The Action uses the existing shared notification contract and the existing
+Notify Action. It does not add a webhook input or delivery code.
 `commercekit.setup.completed` reports setup success or failure with the exact
 `version` input name, effective `latest` when omitted, validation/truncation
 metadata, verified installed version, target, build identity, cache reuse and
@@ -154,8 +151,8 @@ paths are not included in summaries or notifications. Reporting errors produce a
 fixed safe warning while preserving installation outputs and the original
 success/failure outcome.
 
-After the coordinated contract/Notify upgrade has been published and validated,
-replace both placeholders below with reviewed immutable Action commits:
+Use compatible reviewed immutable Setup and Notify commits. Replace both
+placeholders below after reviewing their registry-backed validation:
 
 ```yaml
 - uses: commercekit-tools/setup-commercekit@REPLACE_WITH_REVIEWED_SETUP_COMMIT

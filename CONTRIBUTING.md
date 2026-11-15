@@ -16,11 +16,10 @@ configuration contains no credentials. Trusted CI installation grants
 `packages: read` only to its quality job. Fork workflows may lack package
 access; do not use privileged untrusted PR execution to bypass that restriction.
 
-The reporting-consistency source requires the separately tracked unpublished
-0.0.6 contract candidate. Normal manifests/lockfiles honestly retain published
-0.0.5. Follow `docs/reporting-validation.md` for the isolated candidate gate; do
-not commit machine-local dependency links or candidate bundles as registry
-builds.
+Normal reporting development uses exact published notification-contract 0.0.6.
+No source checkout, candidate preparation or file:tarball dependency is needed.
+The historical candidate procedure is archived in
+`docs/reporting-validation.md`.
 
 ```bash
 corepack enable

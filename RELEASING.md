@@ -18,15 +18,16 @@ This repository does not publish an npm package.
   major version.
 - CLI preview maturity does not change the Action's interface version.
 
-## Reporting consistency gate
+## Reporting consistency
 
-The current reporting source depends on an unpublished additive
-notification-contract 0.0.6 extension. Normal dependencies and committed bundle
-are not a released implementation of that candidate. Publication and adoption
-require separate owner authorization, registry availability/integrity
-verification, exact dependency repinning, regenerated lockfile/bundle and all
-normal checks. Candidate validation alone never authorizes a tag, Action release
-or deployment. See [reporting-validation.md](docs/reporting-validation.md).
+The Action consumes exact published notification-contract 0.0.6, with its
+registry lockfile and standalone bundle committed. Normal development and
+runtime use no candidate dependency or source checkout. The package-only
+publication is separate from this Action's release process; it created no Action
+tag or Marketplace release. See
+[reporting-validation.md](docs/reporting-validation.md) for exact provenance and
+normal validation evidence. All quality/security checks and six native runner
+jobs must pass on the reviewed release commit.
 
 ## Release prerequisites
 

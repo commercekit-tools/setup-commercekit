@@ -16,7 +16,6 @@ Direct runtime dependencies include:
 These notices do not replace the license terms shipped in the generated bundle
 or the dependencies' source distributions.
 
-The reporting-consistency candidate adds the shared contract in source while
-normal committed `dist` retains the prior runtime. Candidate-generated license
-notices are validated only in the isolated candidate workspace; publication and
-normal bundle adoption remain separate gates.
+The reporting implementation consumes the exact published shared contract and
+its runtime dependencies. The regenerated `dist/licenses.txt` accompanies the
+standalone registry-backed bundle; runtime consumers install no packages.
