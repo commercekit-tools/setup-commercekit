@@ -10,6 +10,9 @@ inputs:
     required: false
 
 outputs:
+  notification-event:
+    description:
+      Validated setup notification event with safe input context and outcome.
   version:
     description: Exact installed CommerceKit CLI version.
   path:
