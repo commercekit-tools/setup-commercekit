@@ -43,6 +43,9 @@ jobs:
       - name: Run quality gate
         run: pnpm quality
 
+      - name: Verify bundled reporting, summaries, and redaction
+        run: pnpm test:integration
+
   integration:
     name: Install CLI (${{ matrix.target }})
     strategy:
@@ -85,6 +88,11 @@ jobs:
           CK_CACHE_HIT: ${{ steps.setup-again.outputs.cache-hit }}
           CK_EXPECTED_CACHE_HIT: 'true'
           CK_EXPECTED_TARGET: ${{ matrix.target }}
+          CK_FIRST_CACHE_HIT: ${{ steps.setup.outputs.cache-hit }}
+          CK_FIRST_NOTIFICATION_EVENT:
+            ${{ steps.setup.outputs.notification-event }}
+          CK_NOTIFICATION_EVENT:
+            ${{ steps.setup-again.outputs.notification-event }}
           CK_PATH: ${{ steps.setup-again.outputs.path }}
           CK_TARGET: ${{ steps.setup-again.outputs.target }}
           CK_VERSION: ${{ steps.setup-again.outputs.version }}

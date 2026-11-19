@@ -1,8 +1,9 @@
 # Setup CommerceKit CLI
 
-> **Registry-backed reporting:** consistent notifications and GitHub summaries
-> consume exact published notification-contract 0.0.6 and are bundled for
-> runtime consumers. See [reporting validation](docs/reporting-validation.md).
+> **Released:** `@v1` installs and verifies the CLI. **Unreleased on main:** the
+> notification event and consistent job summaries described below. See
+> [release compatibility and validation](docs/reporting-validation.md) before
+> selecting an immutable commit for those features.
 
 Install and verify a requested
 [CommerceKit CLI](https://github.com/commercekit-tools/cli) version, or the
@@ -19,8 +20,8 @@ version are independent.
 
 ## Usage
 
-After the first v1 Action release, a workflow can install the current CLI
-preview and run project checks in a separate step:
+A workflow can use the released v1 Action to install the current CLI preview and
+run project checks in a separate step:
 
 ```yaml
 name: CommerceKit
@@ -108,18 +109,18 @@ fails. It never falls back to another release, Homebrew, or WinGet.
 
 ## Outputs
 
-| Output               | Meaning                                             | Example                                        |
-| -------------------- | --------------------------------------------------- | ---------------------------------------------- |
-| `version`            | Exact installed CLI version.                        | `0.1.0-preview.2`                              |
-| `path`               | Absolute path to the verified executable.           | Runner tool-cache path ending in `commercekit` |
-| `target`             | Normalized release target selected for the runner.  | `linux-x64`                                    |
-| `build-id`           | Verified identity from `release-manifest.json`.     | 40-character source identity                   |
-| `cache-hit`          | Lowercase string for verified tool-cache reuse.     | `true`                                         |
-| `notification-event` | Validated setup event with safe inputs and outcome. | Bounded JSON for the existing Notify action.   |
+| Output               | Meaning                                                                     | Example                                        |
+| -------------------- | --------------------------------------------------------------------------- | ---------------------------------------------- |
+| `version`            | Exact installed CLI version.                                                | `0.1.0-preview.2`                              |
+| `path`               | Absolute path to the verified executable.                                   | Runner tool-cache path ending in `commercekit` |
+| `target`             | Normalized release target selected for the runner.                          | `linux-x64`                                    |
+| `build-id`           | Verified identity from `release-manifest.json`.                             | 40-character source identity                   |
+| `cache-hit`          | Lowercase string for verified tool-cache reuse.                             | `true`                                         |
+| `notification-event` | **Unreleased on main:** validated setup event with safe inputs and outcome. | Bounded JSON for the existing Notify action.   |
 
 Installation outputs are set only after the executable passes integrity and
-exact-version verification. The Action also emits `notification-event` for
-handled failures before the Action reports failure.
+exact-version verification. The unreleased reporting implementation also emits
+`notification-event` for handled failures before the Action reports failure.
 
 ```yaml
 - name: Show resolved installation
@@ -131,10 +132,12 @@ handled failures before the Action reports failure.
     "$COMMERCEKIT_PATH" --version
 ```
 
-## Consistent notifications and job summaries
+## Consistent notifications and job summaries (unreleased)
 
-The Action uses the existing shared notification contract and the existing
-Notify Action. It does not add a webhook input or delivery code.
+These features are available only at reviewed main commits, and are absent from
+the current released `v1` alias. See the
+[compatibility record](docs/reporting-validation.md#release-compatibility).
+Notify handles delivery; Setup does not add a webhook input.
 `commercekit.setup.completed` reports setup success or failure with the exact
 `version` input name, effective `latest` when omitted, validation/truncation
 metadata, verified installed version, target, build identity, cache reuse and
