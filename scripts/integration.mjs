@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { parseNotificationEventJson } from '@commercekit-tools/notification-contract';
+import { assertSuccessfulSetupEvent } from './assert-reporting.mjs';
 
 const VERSION = '0.1.0-preview.2';
 const root = new URL('..', import.meta.url);
@@ -113,20 +114,13 @@ try {
     [second, secondSummary, true],
   ]) {
     const event = parseNotificationEventJson(output.get('notification-event'));
-    assert.equal(event.eventType, 'commercekit.setup.completed');
-    assert.equal(event.status, 'success');
-    assert.equal(event.source.component, 'setup-commercekit');
-    assert.equal(event.data.version, VERSION);
-    assert.equal(event.data.target, output.get('target'));
-    assert.equal(event.data.buildId, output.get('build-id'));
-    assert.equal(event.data.cacheHit, expectedCacheHit);
-    assert.equal(event.data.inputsValidated, true);
-    assert.equal(event.data.inputsTruncated, false);
-    assert.deepEqual(event.data.inputs, { version: VERSION });
-    assert(
-      Number.isSafeInteger(event.data.durationMs) && event.data.durationMs >= 0,
-    );
-    assert(!JSON.stringify(event).includes(directory));
+    assertSuccessfulSetupEvent(event, {
+      version: VERSION,
+      target: output.get('target'),
+      buildId: output.get('build-id'),
+      cacheHit: expectedCacheHit,
+      privatePaths: [directory],
+    });
     const summary = await readFile(summaryFile, 'utf8');
     for (const detail of [
       '✅',

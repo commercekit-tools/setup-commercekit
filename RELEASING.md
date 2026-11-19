@@ -20,14 +20,12 @@ This repository does not publish an npm package.
 
 ## Reporting consistency
 
-The Action consumes exact published notification-contract 0.0.6, with its
-registry lockfile and standalone bundle committed. Normal development and
-runtime use no candidate dependency or source checkout. The package-only
-publication is separate from this Action's release process; it created no Action
-tag or Marketplace release. See
-[reporting-validation.md](docs/reporting-validation.md) for exact provenance and
-normal validation evidence. All quality/security checks and six native runner
-jobs must pass on the reviewed release commit.
+See the
+[release compatibility and validation record](docs/reporting-validation.md) for
+the released Action reference, main-only reporting features, exact shared
+dependency and publication evidence. Package publication and an Action release
+are separate decisions. All quality/security checks and six native runner jobs
+must pass on the reviewed release commit.
 
 ## Release prerequisites
 
@@ -48,18 +46,20 @@ Before creating a release:
 
 Do not create an Action release from an unreviewed branch.
 
-## Initial v1 release
+## Next compatible v1 release (owner approval required)
 
-After the implementation pull request is merged and `main` CI passes:
+The initial `v1.0.0` already exists. Keep that immutable tag and release intact.
+Only after the owner separately authorizes an Action release, a reviewed pull
+request is merged and the exact main commit passes all prerequisites:
 
-1. create immutable annotated tag `v1.0.0` at the reviewed release commit;
-2. create or update annotated tag `v1` to the same commit;
-3. push both tags without rewriting the immutable tag;
-4. create a GitHub Release for `v1.0.0` with public release notes;
+1. select an unused compatible patch version, such as `v1.0.1`;
+2. create its immutable annotated tag and GitHub Release at the reviewed commit;
+3. verify the exact tag's committed bundle and public release notes;
+4. update the compatible `v1` alias under the versioning policy;
 5. verify `commercekit-tools/setup-commercekit@v1` from an independent public
    test repository; and
-6. optionally submit the Action to GitHub Marketplace after confirming the
-   repository license, metadata, branding, and security guidance.
+6. consider Marketplace publication only with separate owner authorization and
+   after confirming the license, metadata, branding and security guidance.
 
-No tags or Marketplace publication should occur before the implementation is
-reviewed and merged.
+Normal CI never creates tags, GitHub Releases or Marketplace listings. The
+reporting and validation changes do not authorize any of these operations.

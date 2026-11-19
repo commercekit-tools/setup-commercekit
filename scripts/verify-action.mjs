@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { delimiter, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { assertSuccessfulSetupEvent } from './assert-reporting.mjs';
 
 function requireEnvironment(name) {
   const value = process.env[name];
@@ -29,6 +30,7 @@ const buildId = requireEnvironment('CK_BUILD_ID');
 const cacheHit = requireEnvironment('CK_CACHE_HIT');
 const expectedTarget = requireEnvironment('CK_EXPECTED_TARGET');
 const expectedCacheHit = requireEnvironment('CK_EXPECTED_CACHE_HIT');
+const firstCacheHit = requireEnvironment('CK_FIRST_CACHE_HIT');
 
 if (!existsSync(executablePath))
   throw new Error('Action output path is missing.');
@@ -39,6 +41,26 @@ if (!/^[0-9a-f]{40}$/u.test(buildId))
   throw new Error('Invalid build ID output.');
 if (cacheHit !== expectedCacheHit)
   throw new Error('Unexpected cache-hit output.');
+if (!['true', 'false'].includes(firstCacheHit))
+  throw new Error('Invalid first cache-hit output.');
+for (const [name, hit] of [
+  ['CK_FIRST_NOTIFICATION_EVENT', firstCacheHit],
+  ['CK_NOTIFICATION_EVENT', cacheHit],
+]) {
+  let event;
+  try {
+    event = JSON.parse(requireEnvironment(name));
+  } catch {
+    throw new Error('Setup notification output is missing or invalid JSON.');
+  }
+  assertSuccessfulSetupEvent(event, {
+    version,
+    target,
+    buildId,
+    cacheHit: hit === 'true',
+    privatePaths: [executablePath],
+  });
+}
 if (!process.env.PATH?.split(delimiter).includes(dirname(executablePath))) {
   throw new Error('CommerceKit executable directory is missing from PATH.');
 }

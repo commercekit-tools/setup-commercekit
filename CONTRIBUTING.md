@@ -16,10 +16,11 @@ configuration contains no credentials. Trusted CI installation grants
 `packages: read` only to its quality job. Fork workflows may lack package
 access; do not use privileged untrusted PR execution to bypass that restriction.
 
-Normal reporting development uses exact published notification-contract 0.0.6.
-No source checkout, candidate preparation or file:tarball dependency is needed.
-The historical candidate procedure is archived in
-`docs/reporting-validation.md`.
+Normal reporting development uses the exact published dependency in
+`package.json`; no source checkout, candidate preparation or file:tarball
+dependency is needed. The
+[compatibility and validation record](docs/reporting-validation.md) owns
+released-versus-main reporting status and historical candidate evidence.
 
 ```bash
 corepack enable
@@ -40,6 +41,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:coverage
+pnpm test:scripts
 pnpm bundle
 pnpm bundle:check
 pnpm audit --prod --audit-level=high
@@ -59,6 +61,18 @@ outputs, validated notification contexts, success/failure summaries and a
 second-invocation cache hit. It does not install into a system directory or
 modify a shell profile. Latest-stable discovery is covered with synthetic unit
 fixtures because the current public CLI releases are previews.
+
+CI runs the full bundled reporting integration once in its Linux quality job.
+All six native jobs retain their install/cache checks and verify the real event
+outputs using the same success assertions. This avoids six additional complete
+integration installations.
+
+The ESLint and typescript-eslint development parents use upstream patched
+minimatch releases. `test:scripts` verifies all three installed paths stay at
+11.0.1 or newer. This targeted regression complements the existing production
+audit; it is not a claim that every development advisory is absent. Review
+development audit results separately without lowering the production gate or
+adding broad dependency overrides.
 
 ## Committed bundle
 
